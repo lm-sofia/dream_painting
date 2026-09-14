@@ -1,0 +1,57 @@
+# ===== 通用 =====
+.DS_Store
+Thumbs.db
+*.log
+logs/
+.env
+.env.*
+!.env.example
+*.local
+
+# ===== Node / React 前端 =====
+node_modules/
+dist/
+dist-ssr/
+.vite/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Java / Maven =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===== .NET =====
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.pdb
+*.dll
+
+# ===== IDE =====
+.idea/
+*.iml
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# ===== 测试产物 =====
+playwright-report/
+test-results/
+allure-results/
+
+# ===== Docker =====
+*.pid
+docker/data/
