@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: backend-java
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ai_project}
+    username: ${DB_USER:app_user}
+    password: ${DB_PASSWORD:app_password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: UTC
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  jwt:
+    # 生产环境必须通过环境变量 JWT_SECRET 覆盖（长度 >= 32 字节）
+    secret: ${JWT_SECRET:dev-only-change-me-in-production-0123456789abcdef}
+    expiration-ms: 86400000
+
+logging:
+  level:
+    com.aiproject: INFO
+    org.hibernate.SQL: WARN
