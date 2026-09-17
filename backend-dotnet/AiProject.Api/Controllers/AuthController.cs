@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<ActionResult<ApiResponse<UserResponse>>> Me()
     {
-        var username = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var username = User.FindFirstValue("username");
         var user = await _authService.GetUserByUsernameAsync(username ?? string.Empty);
         return ApiResponse<UserResponse>.Ok(UserResponse.From(user));
     }

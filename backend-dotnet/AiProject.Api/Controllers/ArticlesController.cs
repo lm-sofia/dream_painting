@@ -64,12 +64,17 @@ public class ArticlesController : ControllerBase
         return ApiResponse<object?>.Ok();
     }
 
-    private long GetUserId() => long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+    private long GetUserId()
+    {
+        var uid = User.FindFirstValue("uid");
+        return long.TryParse(uid, out var id) ? id : 0;
+    }
 
     private (long userId, string role) GetIdentity()
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-        var role = User.FindFirstValue(ClaimTypes.Role) ?? "USER";
+        var uid = User.FindFirstValue("uid");
+        var userId = long.TryParse(uid, out var id) ? id : 0;
+        var role = User.FindFirstValue("role") ?? "USER";
         return (userId, role);
     }
 }

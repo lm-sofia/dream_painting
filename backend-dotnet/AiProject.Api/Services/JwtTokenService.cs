@@ -28,8 +28,9 @@ public class JwtTokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Role, role)
+            new Claim("uid", userId.ToString()),
+            new Claim("username", username),
+            new Claim("role", role)
         };
 
         var expiresIn = long.Parse(_config["Jwt:ExpiresIn"] ?? "86400");
