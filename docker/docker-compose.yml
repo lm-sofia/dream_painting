@@ -1,0 +1,115 @@
+# =====================================================================
+# AI-Project 一键部署编排
+# 使用：docker compose -f docker/docker-compose.yml up -d --build
+# 服务：frontend + backend-java + backend-dotnet + postgres + redis
+# =====================================================================
+
+name: ai-project
+
+services:
+  # ---------- 数据库 ----------
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-project-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ai_project}
+      POSTGRES_USER: ${POSTGRES_USER:-app_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # 首次启动自动执行建表 + 种子数据脚本
+      - ../database/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app_user} -d ${POSTGRES_DB:-ai_project}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    networks: [app-net]
+
+  # ---------- 缓存 ----------
+  redis:
+    image: redis:7-alpine
+    container_name: ai-project-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    networks: [app-net]
+
+  # ---------- Java 后端（Spring Boot 3） ----------
+  backend-java:
+    build:
+      context: ../backend-java
+      dockerfile: Dockerfile
+    container_name: ai-project-backend-java
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-ai_project}
+      DB_USER: ${POSTGRES_USER:-app_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET:-please-change-me-in-production-0123456789abcdef}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [app-net]
+
+  # ---------- .NET 后端（ASP.NET Core 8） ----------
+  backend-dotnet:
+    build:
+      context: ../backend-dotnet
+      dockerfile: Dockerfile
+    container_name: ai-project-backend-dotnet
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-ai_project};Username=${POSTGRES_USER:-app_user};Password=${POSTGRES_PASSWORD:-app_password}"
+      Jwt__Secret: ${JWT_SECRET:-please-change-me-in-production-0123456789abcdef}
+      Jwt__Issuer: "ai-project"
+      Jwt__Audience: "ai-project-frontend"
+      ASPNETCORE_URLS: "http://+:8080"
+    ports:
+      - "5080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [app-net]
+
+  # ---------- 前端（Nginx 托管，默认代理到 Java 后端） ----------
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: ai-project-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend-java
+    restart: unless-stopped
+    networks: [app-net]
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  app-net:
+    driver: bridge
