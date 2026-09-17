@@ -3,4 +3,3 @@ target/
 *.log
 .git
 .gitignore
-docker-settings.xml
