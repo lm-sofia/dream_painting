@@ -109,3 +109,4 @@ npx playwright test                                 # E2E 测试
 - **React 闭包旧值（第 6 课实战）**：`navigate()` 里用 state（如 draftId）会读到**本次渲染闭包**的旧值（setState 是异步的）。修法：把异步操作返回的值直接用于跳转，不依赖闭包 state。
 - **antd 双字按钮插空格（E2E 断言）**：antd 会在双字按钮文本中间插空格（「保存并开始生成」→「保 存 并 开 始 生 成」），E2E 正则必须写 `/保\s*存\s*并\s*开\s*始\s*生\s*成/`。
 - **Playwright strict mode**：`getByText` 匹配到多个元素直接报错（如 Result 标题+副标题都含同一文案）→ 用 `.first()` 或保证文案唯一。
+- **react-hooks/set-state-in-effect（CI lint 实战）**：新版 eslint-plugin-react-hooks 禁止 effect 内**同步** setState（级联渲染）。`useEffect(load, [])` 里 load 首行 `setLoading(true)` 被拦 → 初始 state 已是 true，删冗余调用即可（异步回调里的 setState 不受限）。

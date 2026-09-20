@@ -49,7 +49,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-          cache: true
+          # cache: true 需要 packages.lock.json（项目未启用锁定模式），关闭缓存避免 Setup 失败
 
       - name: Run tests
         run: dotnet test --nologo

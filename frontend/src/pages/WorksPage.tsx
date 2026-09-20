@@ -16,7 +16,8 @@ export default function WorksPage() {
   const [playing, setPlaying] = useState<Work | null>(null);
 
   const load = () => {
-    setLoading(true);
+    // 注意：不再在 effect 内同步 setLoading(true)——初始 state 已是 true，
+    // 避免触发 react-hooks/set-state-in-effect（同步 setState 导致级联渲染）
     workApi
       .list()
       .then(({ data }) => setWorks(data.data))

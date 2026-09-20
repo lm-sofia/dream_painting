@@ -91,6 +91,10 @@
 - `database/init/01_create_schema.sql`：+works 表（三处同步铁律再执行）
 - **验证通过**：任务 SUCCESS 自动落作品 ✓ / regenerate 后 version v1→v2 ✓ / **越权读作品 404** ✓ / **契约测试 23→44/44**（新增 [7]风格 [8]草稿越权 [9]任务幂等/越权/SSE [10]作品 [11]删除）✓
 - **本次实战修复的坑（前端侧，前端文档同记录）**：antd `getFieldsValue()` 无参只返回已挂载字段（跨 Step 取值丢 title）；`navigate` 闭包旧 state；Playwright 双字按钮插空格 + strict mode
+- **CI 实战三坑（2026-09-20 云端首跑排查）**：
+  ① **Redis 缓存序列化 500**：生产 profile 走 Redis 缓存，`GenericJackson2JsonRedisSerializer` 默认 ObjectMapper 无 JSR310 → DTO 的 `Instant` 字段写缓存即 500（test 用内存缓存不暴露）→ CacheConfig 注入 `JavaTimeModule` + `activateDefaultTyping`（泛型 List 反序列化）
+  ② **旧库缺列**：`CREATE TABLE IF NOT EXISTS` 对已存在表不生效 → 01_create_schema.sql 的 users 补幂等 `ALTER TABLE ADD COLUMN IF NOT EXISTS` + DO 块加约束（PG 不支持 `ADD CONSTRAINT IF NOT EXISTS`）
+  ③ **契约测试 --all 双端**：.NET 仅骨架（Auth/Articles/Health 3 接口）→ 暂改 Java 单端跑，.NET 同步后恢复
 
 ---
 
