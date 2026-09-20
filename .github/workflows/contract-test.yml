@@ -1,6 +1,7 @@
 # =====================================================================
-# 双后端契约测试流水线：真实 PostgreSQL + Redis 环境下
-# 启动 Java/.NET 后端，跑统一契约断言（tests/contract_test.py --all）
+# 契约测试流水线：真实 PostgreSQL + Redis 环境下启动后端跑统一契约断言
+# 注意：.NET 后端仅骨架（第 0 课），第 1-6 课业务待同步，当前契约只跑 Java 端；
+#       .NET 同步完成后，把下面命令改回 `python tests/contract_test.py --all`
 # =====================================================================
 name: Contract Test
 
@@ -16,7 +17,7 @@ concurrency:
 
 jobs:
   contract:
-    name: Contract (23 assertions × 2 backends)
+    name: Contract (Java, 44 assertions, real PG+Redis)
     runs-on: ubuntu-latest
     # 依赖服务：真实 PostgreSQL 与 Redis
     services:
@@ -47,11 +48,6 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -65,35 +61,32 @@ jobs:
       - name: Install requests
         run: pip install requests
 
-      - name: Start Java backend (8080)
+      # Java 默认 profile 为 ddl-auto=validate（不建表），必须先用权威 SQL 初始化
+      - name: Initialize PostgreSQL (schema + seed)
+        run: |
+          cat database/init/01_create_schema.sql database/init/02_seed_data.sql > /tmp/init.sql
+          docker run --rm -i --network host \
+            -e PGPASSWORD=app_password \
+            postgres:16-alpine psql -h localhost -U app_user -d ai_project < /tmp/init.sql
+
+      - name: Start Java backend (8080, prod profile -> real PG/Redis)
         working-directory: backend-java
         run: |
-          nohup mvn -B spring-boot:run -Dspring-boot.run.arguments="--server.port=8080" > /tmp/java.log 2>&1 &
+          nohup mvn -B spring-boot:run > /tmp/java.log 2>&1 &
 
-      - name: Start .NET backend (5080)
-        working-directory: backend-dotnet/AiProject.Api
-        run: |
-          export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=ai_project;Username=app_user;Password=app_password"
-          export Jwt__Secret="ci-test-secret-key-0123456789abcdef0123456789abcdef"
-          export ASPNETCORE_URLS="http://+:5080"
-          nohup dotnet run --no-launch-profile > /tmp/dotnet.log 2>&1 &
-
-      - name: Wait for both backends
+      - name: Wait for Java backend
         run: |
           for i in $(seq 1 60); do
-            java_ok=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health || true)
-            dotnet_ok=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5080/api/v1/health || true)
-            if [ "$java_ok" = "200" ] && [ "$dotnet_ok" = "200" ]; then
-              echo "Both backends ready"; exit 0
-            fi
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health || true)
+            if [ "$code" = "200" ]; then echo "Java backend ready"; exit 0; fi
             sleep 5
           done
-          echo "=== java.log ==="; tail -30 /tmp/java.log
-          echo "=== dotnet.log ==="; tail -30 /tmp/dotnet.log
-          echo "Backends failed to start"; exit 1
+          echo "=== java.log ==="; tail -40 /tmp/java.log
+          echo "Backend failed to start"; exit 1
 
-      - name: Run contract tests
-        run: python tests/contract_test.py --all
+      # .NET 同步第 1-6 课后改回：python tests/contract_test.py --all
+      - name: Run contract tests (Java)
+        run: python tests/contract_test.py --base-url http://localhost:8080/api/v1
 
       - name: Upload backend logs on failure
         if: failure()
@@ -102,4 +95,3 @@ jobs:
           name: backend-logs
           path: |
             /tmp/java.log
-            /tmp/dotnet.log
