@@ -37,6 +37,7 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 600,
+    // antd 是各懒加载页面的共享依赖，必须整包提前加载；原始 748KB / gzip 239KB 属正常体积
+    chunkSizeWarningLimit: 800,
   },
 });

@@ -136,7 +136,68 @@ def run_suite(base: str) -> int:
     r = s.delete(f"{base}/articles/{article_id}", headers=headers2)
     check("非作者删除 -> 403", r.status_code == 403, f"HTTP {r.status_code}")
 
-    # ---- 7. 删除 ----
+    # ---- 7. 风格库（公开读 + 管理写） ----
+    print("\n[7] 风格库")
+    r = s.get(f"{base}/styles")
+    styles = (r.json().get("data") or []) if r.status_code == 200 else []
+    check("GET /styles -> 200 + 列表", r.status_code == 200 and isinstance(styles, list), f"HTTP {r.status_code}")
+    check("GET /styles 至少 1 个（种子）", len(styles) >= 1, f"count={len(styles)}")
+    if styles:
+        sid = styles[0].get("id")
+        r = s.get(f"{base}/styles/{sid}")
+        check("GET /styles/{id} -> 200 + 同名", r.status_code == 200 and r.json().get("data", {}).get("name") == styles[0].get("name"))
+    r = s.get(f"{base}/styles/999999")
+    check("GET /styles 不存在 -> 404", r.status_code == 404, f"HTTP {r.status_code}")
+    r = s.post(f"{base}/styles", json={"name": "x", "category": "OTHER"})
+    check("未登录 POST /styles -> 401", r.status_code == 401, f"HTTP {r.status_code}")
+
+    # ---- 8. 草稿 CRUD + 越权 404 ----
+    print("\n[8] 草稿")
+    r = s.get(f"{base}/drafts")
+    check("未登录 GET /drafts -> 401", r.status_code == 401, f"HTTP {r.status_code}")
+    r = s.post(f"{base}/drafts", headers=headers,
+               json={"title": "契约测试草稿", "idea": "一只猫", "styleId": 1, "duration": 15, "ratio": "9:16", "voiceover": True})
+    draft = r.json().get("data", {})
+    check("POST /drafts -> 200 + id", r.status_code == 200 and draft.get("id"), f"HTTP {r.status_code}")
+    draft_id = draft.get("id")
+    r = s.get(f"{base}/drafts", headers=headers)
+    check("GET /drafts 含新草稿", any(d.get("id") == draft_id for d in (r.json().get("data") or [])))
+    r = s.put(f"{base}/drafts/{draft_id}", headers=headers, json={"title": "改名草稿", "duration": 30, "ratio": "9:16"})
+    check("PUT /drafts/{id} -> 200 + 改名", r.status_code == 200 and r.json().get("data", {}).get("title") == "改名草稿")
+    r = s.get(f"{base}/drafts/{draft_id}", headers=headers2)
+    check("越权读草稿 -> 404（不泄露存在性）", r.status_code == 404, f"HTTP {r.status_code}")
+    r = s.put(f"{base}/drafts/{draft_id}", headers=headers2, json={"title": "hack"})
+    check("越权改草稿 -> 404", r.status_code == 404, f"HTTP {r.status_code}")
+    r = s.delete(f"{base}/drafts/{draft_id}", headers=headers2)
+    check("越权删草稿 -> 404", r.status_code == 404, f"HTTP {r.status_code}")
+
+    # ---- 9. 生成任务（幂等 + 越权） ----
+    print("\n[9] 生成任务")
+    r = s.post(f"{base}/tasks", headers=headers, json={"draftId": draft_id})
+    task = r.json().get("data", {})
+    check("POST /tasks -> 201 + PENDING", r.status_code == 201 and task.get("status") == "PENDING", f"HTTP {r.status_code}")
+    task_id = task.get("id")
+    r = s.post(f"{base}/tasks", headers=headers, json={"draftId": draft_id})
+    check("运行中重复提交 -> 409（幂等）", r.status_code == 409, f"HTTP {r.status_code}")
+    r = s.get(f"{base}/tasks", headers=headers)
+    check("GET /tasks 含新任务", any(t.get("id") == task_id for t in (r.json().get("data") or [])))
+    r = s.get(f"{base}/tasks/{task_id}", headers=headers)
+    check("GET /tasks/{id} -> 200", r.status_code == 200, f"HTTP {r.status_code}")
+    r = s.get(f"{base}/tasks/{task_id}", headers=headers2)
+    check("越权读任务 -> 404", r.status_code == 404, f"HTTP {r.status_code}")
+    r = s.get(f"{base}/tasks/{task_id}/stream", headers=headers2)
+    check("越权订阅 SSE -> 404", r.status_code == 404, f"HTTP {r.status_code}")
+
+    # ---- 10. 作品（不等待生成完成，只验接口可达 + 越权） ----
+    print("\n[10] 作品")
+    r = s.get(f"{base}/works", headers=headers)
+    check("GET /works -> 200 + 列表", r.status_code == 200 and isinstance(r.json().get("data"), list), f"HTTP {r.status_code}")
+    r = s.get(f"{base}/works", headers=headers2)
+    check("未登录/他人 GET /works -> 200（各看各的）", r.status_code == 200, f"HTTP {r.status_code}")
+    r = s.post(f"{base}/works/999999/regenerate", headers=headers2)
+    check("regenerate 不存在作品 -> 404", r.status_code == 404, f"HTTP {r.status_code}")
+
+    # ---- 11. 删除 ----
     print("\n[7] 删除")
     r = s.delete(f"{base}/articles/{article_id}", headers=headers)
     check("作者删除 -> 200", r.status_code == 200, f"HTTP {r.status_code}")

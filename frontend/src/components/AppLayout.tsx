@@ -17,14 +17,22 @@ export default function AppLayout() {
     navigate('/login');
   };
 
-  const selectedKey = location.pathname.startsWith('/articles') ? '/articles' : '/';
+  const selectedKey = location.pathname.startsWith('/articles')
+    ? '/articles'
+    : location.pathname.startsWith('/styles')
+      ? '/styles'
+      : location.pathname.startsWith('/wizard')
+        ? '/wizard'
+        : location.pathname.startsWith('/works')
+          ? '/works'
+          : '/';
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <Typography.Title level={4} style={{ color: '#fff', margin: 0 }}>
-            AI-Project
+            绘梦工坊
           </Typography.Title>
           <Menu
             theme="dark"
@@ -32,6 +40,9 @@ export default function AppLayout() {
             selectedKeys={[selectedKey]}
             items={[
               { key: '/', icon: <HomeOutlined />, label: <Link to="/">首页</Link> },
+              { key: '/wizard', icon: <span>✨</span>, label: <Link to="/wizard">创作</Link> },
+              { key: '/works', icon: <span>🎬</span>, label: <Link to="/works">作品</Link> },
+              { key: '/styles', icon: <span>🎨</span>, label: <Link to="/styles">风格库</Link> },
               { key: '/articles', icon: <span>📄</span>, label: <Link to="/articles">文章</Link> },
             ]}
             style={{ flex: 1, minWidth: 0 }}

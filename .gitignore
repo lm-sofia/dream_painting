@@ -55,3 +55,7 @@ allure-results/
 # ===== Docker =====
 *.pid
 docker/data/
+
+# ===== 本地测试辅助（不入库） =====
+.testdata/
+e2e-fail.png

@@ -2,6 +2,7 @@ package com.aiproject.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -19,4 +20,8 @@ public class RegisterRequest {
     @NotBlank(message = "不能为空")
     @Size(min = 8, max = 64, message = "长度需在 8-64 之间")
     private String password;
+
+    /** 手机号（可选：填了则绑定并唯一；登录可用手机号） */
+    @Pattern(regexp = "^$|^1[3-9]\\d{9}$", message = "手机号格式不合法")
+    private String phone;
 }

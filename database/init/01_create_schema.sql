@@ -25,17 +25,26 @@ $$ LANGUAGE plpgsql;
 -- 表：users 用户表
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS users (
-    id            BIGSERIAL PRIMARY KEY,
-    username      VARCHAR(50)  NOT NULL,
-    email         VARCHAR(120) NOT NULL,
-    password_hash VARCHAR(100) NOT NULL,           -- BCrypt 哈希
-    role          VARCHAR(20)  NOT NULL DEFAULT 'USER',
-    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    id              BIGSERIAL PRIMARY KEY,
+    username        VARCHAR(50)  NOT NULL,
+    email           VARCHAR(120) NOT NULL,
+    password_hash   VARCHAR(100) NOT NULL,           -- BCrypt 哈希
+    role            VARCHAR(20)  NOT NULL DEFAULT 'USER',
+    phone           VARCHAR(20),                     -- 手机号（产品化：可空=兼容老用户）
+    level           INT          NOT NULL DEFAULT 1, -- 创作等级（游戏化）
+    continuous_days INT          NOT NULL DEFAULT 0, -- 连续创作天数
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_users_username UNIQUE (username),
     CONSTRAINT uq_users_email    UNIQUE (email),
+    CONSTRAINT uq_users_phone    UNIQUE (phone),
     CONSTRAINT ck_users_role     CHECK (role IN ('USER', 'ADMIN'))
 );
+
+-- 存量库迁移（已有 users 表时执行一次）：
+-- ALTER TABLE users ADD COLUMN phone VARCHAR(20), ADD COLUMN level INT NOT NULL DEFAULT 1,
+--                   ADD COLUMN continuous_days INT NOT NULL DEFAULT 0;
+-- CREATE UNIQUE INDEX uq_users_phone ON users (phone);
 
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_users_email    ON users (email);
@@ -84,3 +93,146 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_user_id    ON audit_logs (user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs (created_at DESC);
+
+-- =====================================================================
+-- 表：styles 风格库（第 2 课：风格选择模块）
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS styles (
+    id              BIGSERIAL PRIMARY KEY,
+    name            VARCHAR(50)  NOT NULL,
+    description     VARCHAR(500),
+    category        VARCHAR(30)  NOT NULL,          -- 国风/赛博/治愈/热血/搞笑/奇幻
+    cover_url       VARCHAR(500),
+    prompt_template TEXT,                           -- 生成时用户创意填充 {idea}
+    sort_order      INT          NOT NULL DEFAULT 0,
+    active          BOOLEAN      NOT NULL DEFAULT TRUE,  -- 上架/下架（软删除）
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_styles_name UNIQUE (name),
+    CONSTRAINT ck_styles_category CHECK (category IN
+        ('国风', '赛博', '治愈', '热血', '搞笑', '奇幻'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_styles_active_sort ON styles (active, sort_order);
+
+DROP TRIGGER IF EXISTS trg_styles_updated_at ON styles;
+CREATE TRIGGER trg_styles_updated_at
+    BEFORE UPDATE ON styles
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =====================================================================
+-- 表：drafts 创作草稿（第 3 课：三步向导）
+-- 说明：草稿为私有数据，user_id 做逻辑关联（无外键，性能优先、应用层守卫越权）
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS drafts (
+    id         BIGSERIAL PRIMARY KEY,
+    user_id    BIGINT       NOT NULL,
+    title      VARCHAR(100) NOT NULL,
+    idea       TEXT,
+    style_id   BIGINT,                          -- 逻辑关联 styles.id（可空=未选风格）
+    duration   INT          NOT NULL DEFAULT 30,  -- 秒：15/30/60
+    ratio      VARCHAR(10)  NOT NULL DEFAULT '9:16',  -- 9:16 / 16:9 / 1:1
+    voiceover  BOOLEAN      NOT NULL DEFAULT TRUE,
+    status     VARCHAR(20)  NOT NULL DEFAULT 'DRAFT',  -- DRAFT（第 4 课生成时转任务）
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT ck_drafts_ratio  CHECK (ratio IN ('9:16', '16:9', '1:1')),
+    CONSTRAINT ck_drafts_status CHECK (status IN ('DRAFT'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_drafts_user_updated ON drafts (user_id, updated_at DESC);
+
+DROP TRIGGER IF EXISTS trg_drafts_updated_at ON drafts;
+CREATE TRIGGER trg_drafts_updated_at
+    BEFORE UPDATE ON drafts
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+-- 第 4 课：生成任务状态机 + 额度账户
+-- ============================================================
+
+-- 生成任务表（6 状态：PENDING/AGENTS/RENDERING/COMPILING/SUCCESS/FAILED）
+CREATE TABLE IF NOT EXISTS generation_tasks (
+    id            BIGSERIAL    PRIMARY KEY,
+    user_id       BIGINT       NOT NULL REFERENCES users(id),
+    draft_id      BIGINT       NOT NULL REFERENCES drafts(id),
+    status        VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    progress      INTEGER      NOT NULL DEFAULT 0,
+    stage_message VARCHAR(200),
+    error_message VARCHAR(500),
+    video_url     VARCHAR(500),
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT ck_tasks_status CHECK (status IN ('PENDING','AGENTS','RENDERING','COMPILING','SUCCESS','FAILED'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_tasks_user_created ON generation_tasks (user_id, created_at DESC);
+
+-- 幂等核心：部分唯一索引 —— 同一草稿同时只能有 1 个"运行中"任务（应用层判断 + DB 双保险）
+CREATE UNIQUE INDEX IF NOT EXISTS uq_tasks_draft_running
+    ON generation_tasks (draft_id)
+    WHERE status IN ('PENDING', 'AGENTS', 'RENDERING', 'COMPILING');
+
+DROP TRIGGER IF EXISTS trg_tasks_updated_at ON generation_tasks;
+CREATE TRIGGER trg_tasks_updated_at
+    BEFORE UPDATE ON generation_tasks
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- 额度账户（每用户一行；扣减用 SELECT FOR UPDATE 行锁防超扣）
+CREATE TABLE IF NOT EXISTS credit_accounts (
+    id            BIGSERIAL   PRIMARY KEY,
+    user_id       BIGINT      NOT NULL REFERENCES users(id),
+    balance       INTEGER     NOT NULL DEFAULT 0,
+    monthly_quota INTEGER     NOT NULL DEFAULT 10,   -- 免费用户每月 10 次
+    billing_month VARCHAR(7)  NOT NULL,               -- 账单月 yyyy-MM，跨月重置
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_credit_accounts_user UNIQUE (user_id)
+);
+
+DROP TRIGGER IF EXISTS trg_credit_accounts_updated_at ON credit_accounts;
+CREATE TRIGGER trg_credit_accounts_updated_at
+    BEFORE UPDATE ON credit_accounts
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- 额度流水（幂等键唯一约束 = 防重复扣费的最后一道闸）
+CREATE TABLE IF NOT EXISTS credit_transactions (
+    id              BIGSERIAL   PRIMARY KEY,
+    user_id         BIGINT      NOT NULL REFERENCES users(id),
+    task_id         BIGINT      NOT NULL REFERENCES generation_tasks(id),
+    amount          INTEGER     NOT NULL,             -- 扣费为负（-1）
+    type            VARCHAR(20) NOT NULL,             -- TASK_CREATE / RECHARGE / MONTH_RESET
+    idempotency_key VARCHAR(64) NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_credit_tx_key UNIQUE (idempotency_key)
+);
+
+-- ============================================================
+-- 第 5 课：7 智能体阶段字段（generation_tasks 追加列）
+-- ============================================================
+ALTER TABLE generation_tasks ADD COLUMN IF NOT EXISTS agent_stage   VARCHAR(20);  -- 当前智能体
+ALTER TABLE generation_tasks ADD COLUMN IF NOT EXISTS agent_progress INTEGER     NOT NULL DEFAULT 0;  -- 智能体内部进度
+
+-- ============================================================
+-- 第 6 课：作品表（任务 SUCCESS 自动落一条）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS works (
+    id         BIGSERIAL    PRIMARY KEY,
+    user_id    BIGINT       NOT NULL REFERENCES users(id),
+    draft_id   BIGINT       NOT NULL REFERENCES drafts(id),
+    task_id    BIGINT       NOT NULL REFERENCES generation_tasks(id),
+    title      VARCHAR(100) NOT NULL,
+    video_url  VARCHAR(500),
+    cover_url  VARCHAR(500),
+    version    INTEGER      NOT NULL DEFAULT 1,   -- 同草稿第几次成功生成
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_works_draft_version UNIQUE (draft_id, version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_works_user_created ON works (user_id, created_at DESC);
+
+DROP TRIGGER IF EXISTS trg_works_updated_at ON works;
+CREATE TRIGGER trg_works_updated_at
+    BEFORE UPDATE ON works
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();

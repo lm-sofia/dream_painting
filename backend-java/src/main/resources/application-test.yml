@@ -8,6 +8,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    # 关键：让 data.sql 在 Hibernate 建表之后执行（否则表不存在报错）
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:seed-data.sql
   data:
     redis:
       # 测试不连接真实 Redis

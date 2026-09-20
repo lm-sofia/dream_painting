@@ -73,3 +73,36 @@ test.describe('完整用户旅程', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 });
+
+test.describe('AI 创作全链路（第 4-6 课）', () => {
+  test('创作→生成（SSE）→作品库可见', async ({ page }) => {
+    const username = uniqueName('e2e');
+    const password = 'e2e-passw0rd';
+    const title = `E2E 动画作品 ${Date.now()}`;
+
+    // 1. 注册并登录
+    await registerAndLogin(page, username, password);
+
+    // 2. 三步向导：写标题 → 选风格 → 配置
+    await page.goto('/wizard');
+    await page.getByPlaceholder(/例如：会跳舞的猫/).fill(title);
+    await page.getByRole('button', { name: /下\s*一\s*步/ }).click();
+    // 风格网格第一张卡片（StyleCard 带 data-testid，不依赖 UI 文本）
+    await page.getByTestId('style-card').first().click();
+    await page.getByRole('button', { name: /下\s*一\s*步/ }).click();
+    // 第三步入最后一步：保存并开始生成（antd 双字按钮中间插空格，正则要加 \s*）
+    const saveBtn = page.getByRole('button', { name: /保\s*存\s*并\s*开\s*始\s*生\s*成/ });
+    await expect(saveBtn).toBeVisible();
+    await saveBtn.click();
+
+    // 3. 生成页：SSE 实时推送 → 等待完成（7 智能体流水线约 18 秒）
+    await expect(page).toHaveURL(/\/generating/);
+    await expect(page.getByText('生成完成 🎉').first()).toBeVisible({ timeout: 60000 });
+
+    // 4. 作品库：查看作品 → 卡片可见（标题 + 版本 v1）
+    await page.getByRole('button', { name: /查\s*看\s*作\s*品/ }).click();
+    await expect(page).toHaveURL(/\/works/);
+    await expect(page.getByText(title)).toBeVisible();
+    await expect(page.getByText('v1')).toBeVisible();
+  });
+});

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>绘梦工坊 · 产品原型（可交互线框）</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'PingFang SC','Microsoft YaHei','Segoe UI',Arial,sans-serif; background:#F4F3EE; color:#1A1B1C; }
+  .browser { max-width:1280px; margin:16px auto; background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 6px 24px rgba(0,0,0,0.08); }
+  .addrbar { display:flex; align-items:center; gap:10px; padding:10px 16px; background:#F7F6F3; border-bottom:1px solid #E4E3DD; font-size:12px; color:#6B7280; }
+  .addrbar .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .addrbar .url { flex:1; background:#fff; border:1px solid #E4E3DD; border-radius:6px; padding:5px 12px; }
+  .nav { display:flex; align-items:center; gap:24px; padding:14px 28px; border-bottom:1px solid #E4E3DD; }
+  .logo { font-size:18px; font-weight:700; background:linear-gradient(135deg,#8B5CF6,#A855F7); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .nav a { font-size:14px; color:#6B7280; text-decoration:none; cursor:pointer; padding:6px 2px; }
+  .nav a:hover, .nav a.active { color:#8B5CF6; font-weight:600; border-bottom:2px solid #8B5CF6; }
+  .nav .spacer { flex:1; }
+  .btn { display:inline-block; padding:8px 18px; border-radius:8px; font-size:14px; cursor:pointer; border:none; }
+  .btn-primary { background:linear-gradient(135deg,#8B5CF6,#A855F7); color:#fff; }
+  .btn-ghost { background:#fff; border:1px solid #D1D5DB; color:#1A1B1C; }
+  .btn-lg { padding:14px 34px; font-size:16px; border-radius:12px; }
+  .view { display:none; padding:28px; }
+  .view.active { display:block; }
+  .hero { text-align:center; padding:48px 20px 40px; background:linear-gradient(135deg,rgba(139,92,246,0.06),rgba(168,85,247,0.10)); border-radius:16px; margin-bottom:24px; }
+  .hero h1 { font-size:30px; margin-bottom:10px; }
+  .hero p { color:#6B7280; margin-bottom:20px; }
+  .dual-path { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:20px; }
+  .path-card { width:280px; padding:20px; background:#fff; border:1px solid #E4E3DD; border-radius:14px; text-align:left; cursor:pointer; }
+  .path-card:hover { border-color:#8B5CF6; box-shadow:0 4px 14px rgba(139,92,246,0.15); }
+  .path-card h3 { font-size:16px; margin-bottom:6px; }
+  .path-card .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; background:rgba(139,92,246,0.1); color:#8B5CF6; margin-bottom:8px; }
+  .path-card p { font-size:13px; color:#6B7280; }
+  .path-card .time { font-size:12px; color:#389E0D; margin-top:10px; font-weight:600; }
+  .section-title { font-size:18px; font-weight:600; margin:24px 0 14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+  .card { background:#fff; border:1px solid #E4E3DD; border-radius:12px; overflow:hidden; cursor:pointer; }
+  .card:hover { border-color:#8B5CF6; }
+  .thumb { height:130px; background:linear-gradient(135deg,#EDE9FE,#E0E7FF); display:flex; align-items:center; justify-content:center; color:#8B5CF6; font-size:13px; }
+  .card .body { padding:10px 12px; }
+  .card .body h4 { font-size:14px; }
+  .card .body .meta { font-size:12px; color:#6B7280; margin-top:4px; }
+  .wizard-head { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
+  .step-pill { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; background:#E5E7EB; color:#6B7280; }
+  .step-pill.done { background:#8B5CF6; color:#fff; }
+  .step-pill.active { background:#8B5CF6; color:#fff; box-shadow:0 0 0 4px rgba(139,92,246,0.2); }
+  .step-line { flex:1; height:2px; background:#E5E7EB; }
+  .step-line.done { background:#8B5CF6; }
+  .wizard-label { font-size:13px; color:#6B7280; margin-top:4px; text-align:center; }
+  .input-area { display:flex; gap:10px; margin:16px 0; }
+  .input-area input { flex:1; padding:12px 16px; border:1px solid #D1D5DB; border-radius:10px; font-size:14px; outline:none; }
+  .input-area input:focus { border-color:#8B5CF6; }
+  .ai-hint { background:rgba(139,92,246,0.06); border:1px dashed #C4B5FD; border-radius:12px; padding:14px; font-size:13px; color:#6B7280; margin-bottom:14px; }
+  .ai-hint b { color:#8B5CF6; }
+  .style-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .style-item { padding:16px 12px; background:#fff; border:2px solid #E4E3DD; border-radius:12px; text-align:center; cursor:pointer; }
+  .style-item.selected { border-color:#8B5CF6; background:rgba(139,92,246,0.06); }
+  .style-item .sw { width:44px; height:44px; border-radius:10px; margin:0 auto 8px; }
+  .style-item .nm { font-size:13px; }
+  .rec-tag { font-size:11px; color:#D48806; font-weight:600; }
+  .pipeline { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0; }
+  .agent { flex:1 1 130px; min-width:130px; padding:12px; background:#fff; border:1px solid #E4E3DD; border-radius:12px; text-align:center; }
+  .agent .st { font-size:12px; margin-top:6px; }
+  .agent.wait .st { color:#9CA3AF; }
+  .agent.run .st { color:#8B5CF6; font-weight:600; }
+  .agent.done .st { color:#389E0D; }
+  .progress-bar { height:8px; background:#E5E7EB; border-radius:4px; overflow:hidden; margin:10px 0; }
+  .progress-bar > div { height:100%; width:0%; background:linear-gradient(90deg,#8B5CF6,#A855F7); border-radius:4px; transition:width .6s; }
+  .player { aspect-ratio:16/9; background:#1F2937; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#9CA3AF; font-size:14px; margin-bottom:14px; }
+  .player .play { width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; }
+  .canvas-layout { display:flex; gap:14px; }
+  .canvas-main { flex:1; background:#111827; border-radius:14px; min-height:320px; display:flex; align-items:center; justify-content:center; color:#6B7280; font-size:14px; position:relative; }
+  .canvas-side { width:300px; display:flex; flex-direction:column; gap:10px; }
+  .panel { background:#fff; border:1px solid #E4E3DD; border-radius:12px; padding:14px; }
+  .panel h4 { font-size:13px; margin-bottom:8px; }
+  .sel-box { position:absolute; left:38%; top:38%; width:120px; height:90px; border:2px dashed #A855F7; border-radius:6px; background:rgba(168,85,247,0.1); }
+  .timeline { display:flex; gap:4px; margin-top:10px; }
+  .tl-item { flex:1; height:26px; background:#EDE9FE; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#6B7280; }
+  .tl-item.hot { background:#8B5CF6; color:#fff; }
+  .explore-layout { display:flex; gap:16px; }
+  .filter { width:160px; flex-shrink:0; }
+  .filter .f-item { padding:8px 12px; font-size:13px; color:#6B7280; border-radius:8px; cursor:pointer; }
+  .filter .f-item.active { background:rgba(139,92,246,0.1); color:#8B5CF6; font-weight:600; }
+  .masonry { flex:1; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+  .post { background:#fff; border:1px solid #E4E3DD; border-radius:12px; overflow:hidden; cursor:pointer; }
+  .post .v { height:110px; background:linear-gradient(135deg,#C7D2FE,#DDD6FE); display:flex; align-items:center; justify-content:center; color:#6D28D9; font-size:12px; }
+  .post .i { padding:8px 10px; }
+  .post .t { font-size:13px; font-weight:600; }
+  .post .m { font-size:11px; color:#6B7280; margin-top:4px; }
+  .me-layout { display:flex; gap:16px; }
+  .me-left { width:220px; flex-shrink:0; }
+  .avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#8B5CF6,#A855F7); display:flex; align-items:center; justify-content:center; color:#fff; font-size:24px; margin-bottom:10px; }
+  .me-menu .m { padding:10px 12px; font-size:14px; color:#6B7280; border-radius:8px; cursor:pointer; }
+  .me-menu .m.active { background:rgba(139,92,246,0.1); color:#8B5CF6; font-weight:600; }
+  .me-right { flex:1; }
+  .stat-row { display:flex; gap:12px; margin-bottom:16px; }
+  .stat { flex:1; background:#fff; border:1px solid #E4E3DD; border-radius:12px; padding:14px; text-align:center; }
+  .stat .num { font-size:22px; font-weight:700; color:#8B5CF6; }
+  .stat .lb { font-size:12px; color:#6B7280; margin-top:4px; }
+  .tag-line { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .pill { font-size:11px; padding:3px 10px; border-radius:12px; background:#F3F4F6; color:#4B5563; }
+  .pill.mem { background:rgba(250,173,20,0.12); color:#D48806; font-weight:600; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .foot-note { text-align:center; font-size:12px; color:#9CA3AF; padding:20px; }
+  .mockup-label { position:fixed; right:12px; bottom:12px; background:#1F2937; color:#fff; font-size:11px; padding:6px 12px; border-radius:20px; opacity:.85; }
+</style>
+</head>
+<body>
+
+<div class="browser">
+  <div class="addrbar">
+    <span class="dot" style="background:#FF5F57;"></span><span class="dot" style="background:#FEBC2E;"></span><span class="dot" style="background:#28C840;"></span>
+    <span class="url">https://drawdream.ai/home</span>
+  </div>
+
+  <!-- 顶部导航 -->
+  <div class="nav">
+    <div class="logo">🎬 绘梦工坊</div>
+    <a class="active" onclick="show('home')">首页</a>
+    <a onclick="show('templates')">模板库</a>
+    <a onclick="show('explore')">作品广场</a>
+    <a onclick="show('me')">个人中心</a>
+    <div class="spacer"></div>
+    <span class="btn btn-ghost" onclick="alert('原型演示：登录/注册页（后续迭代）')">登录</span>
+    <span class="btn btn-primary" onclick="show('wizard'); wizardStep(1)">开始创作</span>
+  </div>
+
+  <!-- ============ 首页 ============ -->
+  <div class="view active" id="home">
+    <div class="hero">
+      <h1>30 秒，把任何脑洞变成能火的动画短视频</h1>
+      <p>AI 动画社交创作平台 · 7 大专业智能体为你打工 · 不会动画也能玩</p>
+      <div class="row" style="justify-content:center;">
+        <span class="btn btn-primary btn-lg" onclick="show('wizard'); wizardStep(1)">🎨 自由创作</span>
+        <span class="btn btn-ghost btn-lg" onclick="show('templates')">⚡ 模板一键出片（30s）</span>
+      </div>
+      <div class="dual-path">
+        <div class="path-card" onclick="show('templates')">
+          <span class="tag">新手推荐</span>
+          <h3>模板一键出片</h3>
+          <p>选个爆款模板 → 替换主角 → 出片。零学习成本。</p>
+          <div class="time">⏱ 约 30 秒出片</div>
+        </div>
+        <div class="path-card" onclick="show('wizard'); wizardStep(1)">
+          <span class="tag">进阶创作</span>
+          <h3>三步自由创作</h3>
+          <p>说想法 → 选风格 → 智能体流水线生成，完全掌控。</p>
+          <div class="time">⏱ 约 3 分钟</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">🔥 热门模板</div>
+    <div class="grid">
+      <div class="card" onclick="show('templates')"><div class="thumb">🎬 萌宠拟人</div><div class="body"><h4>会说话的猫咪</h4><div class="meta">12.4w 人使用</div></div></div>
+      <div class="card" onclick="show('templates')"><div class="thumb">🎬 治愈系</div><div class="body"><h4>星空告白</h4><div class="meta">8.1w 人使用</div></div></div>
+      <div class="card" onclick="show('templates')"><div class="thumb">🎬 搞笑向</div><div class="body"><h4>打工人的一天</h4><div class="meta">6.7w 人使用</div></div></div>
+      <div class="card" onclick="show('templates')"><div class="thumb">🎬 科幻风</div><div class="body"><h4>赛博都市夜</h4><div class="meta">5.2w 人使用</div></div></div>
+    </div>
+
+    <div class="section-title">🏆 今日挑战赛</div>
+    <div class="card" style="display:flex; align-items:center; gap:16px; padding:18px;" onclick="show('explore')">
+      <div style="font-size:34px;">🏆</div>
+      <div>
+        <h4 style="font-size:16px;"># 我的宠物会说话（今日话题）</h4>
+        <div style="font-size:13px; color:#6B7280; margin-top:4px;">已有 1,284 人参与 · 冠军获 30 天会员 · 点击参赛</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 模板库 ============ -->
+  <div class="view" id="templates">
+    <div class="section-title" style="margin-top:0;">模板库 <span style="font-size:13px;color:#6B7280;font-weight:400;">—— 选一个，替换主角，一键出片</span></div>
+    <div class="tag-line">
+      <span class="pill" style="background:rgba(139,92,246,0.12);color:#8B5CF6;font-weight:600;">全部</span>
+      <span class="pill">搞笑</span><span class="pill">感人</span><span class="pill">科幻</span><span class="pill">宠物</span><span class="pill">广告</span><span class="pill">音乐</span>
+    </div>
+    <div class="grid" style="margin-top:12px;">
+      <div class="card" onclick="show('wizard'); wizardStep(1)"><div class="thumb">🐱 会说话的猫咪</div><div class="body"><h4>会说话的猫咪</h4><div class="meta">搞笑 · 12.4w 使用</div></div></div>
+      <div class="card" onclick="show('wizard'); wizardStep(1)"><div class="thumb">🌌 星空告白</div><div class="body"><h4>星空告白</h4><div class="meta">治愈 · 8.1w 使用</div></div></div>
+      <div class="card" onclick="show('wizard'); wizardStep(1)"><div class="thumb">💼 打工人的一天</div><div class="body"><h4>打工人的一天</h4><div class="meta">搞笑 · 6.7w 使用</div></div></div>
+      <div class="card" onclick="show('wizard'); wizardStep(1)"><div class="thumb">🌃 赛博都市夜</div><div class="body"><h4>赛博都市夜</h4><div class="meta">科幻 · 5.2w 使用</div></div></div>
+      <div class="card" onclick="show('wizard'); wizardStep(1)"><div class="thumb">🍰 美食探店</div><div class="body"><h4>美食探店</h4><div class="meta">生活 · 4.3w 使用</div></div></div>
+      <div class="card" onclick="show('wizard'); wizardStep(1)"><div class="thumb">🎮 游戏开箱</div><div class="body"><h4>游戏开箱</h4><div class="meta">游戏 · 3.9w 使用</div></div></div>
+    </div>
+    <div class="ai-hint" style="margin-top:16px;"><b>💡 模板机制：</b>每个模板 = 固定分镜 + 配乐 + 风格。你可以只替换主角（文字描述），其余自动保持一致。所有基于你模板的作品都会署名"使用 @你的模板"。</div>
+  </div>
+
+  <!-- ============ 三步向导 ============ -->
+  <div class="view" id="wizard">
+    <div class="wizard-head">
+      <div style="text-align:center;"><div class="step-pill active" id="sp1">1</div><div class="wizard-label">输入创意</div></div>
+      <div class="step-line" id="sl1"></div>
+      <div style="text-align:center;"><div class="step-pill" id="sp2">2</div><div class="wizard-label">选择风格</div></div>
+      <div class="step-line" id="sl2"></div>
+      <div style="text-align:center;"><div class="step-pill" id="sp3">3</div><div class="wizard-label">智能体生成</div></div>
+    </div>
+
+    <!-- 步骤1：输入创意 -->
+    <div id="ws1">
+      <div class="section-title" style="margin-top:0;">✍️ 说说你的动画想法</div>
+      <div class="input-area">
+        <input id="ideaInput" placeholder="例如：一只会飞的企鹅在太空开了一家咖啡店……">
+        <span class="btn btn-primary" onclick="wizardStep(2)">下一步</span>
+      </div>
+      <div class="ai-hint">
+        <b>✨ AI 帮你完善（对话式补全）：</b>输入太短？AI 会追问 2-3 个问题帮你补全。<br>
+        <span style="font-size:12px;color:#9CA3AF;">[示例追问] 主角是谁？→ 什么场景？→ 什么情绪？</span>
+      </div>
+      <div class="section-title" style="font-size:15px;">或选择其他输入方式</div>
+      <div class="row">
+        <span class="btn btn-ghost">🖼️ 上传参考图</span>
+        <span class="btn btn-ghost">🔗 粘贴视频链接（拉片复刻）</span>
+      </div>
+      <div style="margin-top:14px;"><span class="btn btn-ghost" onclick="show('home')">← 返回</span></div>
+    </div>
+
+    <!-- 步骤2：选择风格 -->
+    <div id="ws2" style="display:none;">
+      <div class="section-title" style="margin-top:0;">🎨 选择风格 <span style="font-size:13px;color:#D48806;font-weight:400;">为你推荐</span></div>
+      <div class="style-grid">
+        <div class="style-item selected" onclick="selStyle(this)"><div class="sw" style="background:linear-gradient(135deg,#FBBF24,#F59E0B);"></div><div class="nm">2D 动漫</div><div class="rec-tag">⭐ 推荐</div></div>
+        <div class="style-item" onclick="selStyle(this)"><div class="sw" style="background:linear-gradient(135deg,#34D399,#059669);"></div><div class="nm">治愈水彩</div><div class="rec-tag">⭐ 推荐</div></div>
+        <div class="style-item" onclick="selStyle(this)"><div class="sw" style="background:linear-gradient(135deg,#818CF8,#4F46E5);"></div><div class="nm">赛博朋克</div><div class="rec-tag">⭐ 推荐</div></div>
+        <div class="style-item" onclick="selStyle(this)"><div class="sw" style="background:linear-gradient(135deg,#F472B6,#DB2777);"></div><div class="nm">少女漫画</div></div>
+        <div class="style-item" onclick="selStyle(this)"><div class="sw" style="background:linear-gradient(135deg,#64748B,#1E293B);"></div><div class="nm">水墨风</div></div>
+        <div class="style-item" onclick="selStyle(this)"><div class="sw" style="background:linear-gradient(135deg,#FB923C,#EA580C);"></div><div class="nm">黏土动画</div></div>
+      </div>
+      <div style="margin-top:16px;" class="row">
+        <span class="btn btn-ghost" onclick="wizardStep(1)">← 上一步</span>
+        <span class="btn btn-primary" onclick="startGenerate()">🚀 开始生成</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 生成进度 ============ -->
+  <div class="view" id="task">
+    <div class="section-title" style="margin-top:0;">🎞️ 智能体流水线正在为你打工…</div>
+    <div class="progress-bar"><div id="pgBar" style="width:0%;"></div></div>
+    <div style="font-size:12px;color:#6B7280;margin-bottom:6px;">预计剩余：<span id="pgTime">约 2 分钟</span> · <a style="color:#8B5CF6;cursor:pointer;" onclick="cancelTask()">取消生成（额度返还）</a></div>
+    <div class="pipeline" id="pipeline">
+      <div class="agent wait" data-i="0"><div style="font-size:22px;">🎨</div><div>艺术总监</div><div class="st">待执行</div></div>
+      <div class="agent wait" data-i="1"><div style="font-size:22px;">✍️</div><div>编剧</div><div class="st">待执行</div></div>
+      <div class="agent wait" data-i="2"><div style="font-size:22px;">🧑‍🎨</div><div>角色设计师</div><div class="st">待执行</div></div>
+      <div class="agent wait" data-i="3"><div style="font-size:22px;">🏞️</div><div>场景师</div><div class="st">待执行</div></div>
+      <div class="agent wait" data-i="4"><div style="font-size:22px;">🎞️</div><div>动画师</div><div class="st">待执行</div></div>
+      <div class="agent wait" data-i="5"><div style="font-size:22px;">✂️</div><div>剪辑师</div><div class="st">待执行</div></div>
+      <div class="agent wait" data-i="6"><div style="font-size:22px;">🎵</div><div>音效师</div><div class="st">待执行</div></div>
+    </div>
+    <div class="ai-hint"><b>🧠 一致性保证：</b>角色脸型/服装/比例跨镜头锁定 · 场景光照/道具风格保持一致 · 生成完成自动质检</div>
+  </div>
+
+  <!-- ============ 结果页 ============ -->
+  <div class="view" id="film">
+    <div class="row" style="margin-bottom:12px;">
+      <h3 style="font-size:17px;">🎬 你的作品「会飞的企鹅咖啡馆」已生成</h3>
+      <div class="spacer" style="flex:1;"></div>
+      <span class="btn btn-ghost" onclick="show('canvas')">🖌️ 智能画布精修</span>
+      <span class="btn btn-ghost" onclick="alert('原型演示：导出弹窗（MP4 1080p / GIF / 封面图）')">📤 导出</span>
+      <span class="btn btn-primary" onclick="show('explore')">📢 发布到广场</span>
+    </div>
+    <div class="player"><div class="play">▶</div></div>
+    <div class="row" style="font-size:13px;color:#6B7280;margin-bottom:14px;">
+      <span class="pill">2D 动漫</span><span class="pill">45s · 1080p</span><span class="pill">8 镜头</span>
+      <span class="btn btn-ghost" style="padding:4px 12px;font-size:12px;">🔄 重新生成（不耗额度 ×3）</span>
+    </div>
+    <div class="ai-hint"><b>💡 免费用户：</b>导出带"绘梦工坊"水印 · 升级会员解锁无水印 + 4K + 优先队列</div>
+  </div>
+
+  <!-- ============ 智能画布 ============ -->
+  <div class="view" id="canvas">
+    <div class="row" style="margin-bottom:12px;">
+      <h3 style="font-size:17px;">🖌️ 智能画布（局部修改）</h3>
+      <div class="spacer" style="flex:1;"></div>
+      <span class="btn btn-ghost" onclick="show('film')">← 返回成片</span>
+      <span class="btn btn-primary" onclick="alert('原型演示：已创建新版本 v2（可在版本历史回滚）')">应用修改</span>
+    </div>
+    <div class="canvas-layout">
+      <div class="canvas-main">
+        <span>画面预览区（框选目标后输入指令）</span>
+        <div class="sel-box"></div>
+      </div>
+      <div class="canvas-side">
+        <div class="panel">
+          <h4>✏️ 对话式修改指令</h4>
+          <div class="input-area" style="margin:8px 0;"><input placeholder="把主角帽子换成红色"></div>
+          <div class="tag-line" style="margin:0;">
+            <span class="pill" style="background:rgba(139,92,246,0.12);color:#8B5CF6;">角色</span>
+            <span class="pill">场景</span><span class="pill">分镜</span><span class="pill" style="opacity:.5;">配乐 P1</span>
+          </div>
+          <div style="font-size:11px;color:#6B7280;margin-top:8px;">⚠️ 修改将重新生成受影响镜头（约 1 分钟），未修改镜头保持不变</div>
+        </div>
+        <div class="panel">
+          <h4>版本历史（可回滚）</h4>
+          <div class="tag-line" style="margin:0; flex-direction:column; align-items:flex-start; gap:4px;">
+            <span class="pill" style="background:rgba(139,92,246,0.12);color:#8B5CF6;">v2 修改帽子（当前）</span>
+            <span class="pill">v1 原始成片</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>🎞️ 分镜时间线</h4>
+          <div class="timeline">
+            <div class="tl-item">镜1</div><div class="tl-item hot">镜2*</div><div class="tl-item">镜3</div><div class="tl-item">镜4</div><div class="tl-item">镜5</div>
+          </div>
+          <div style="font-size:11px;color:#6B7280;margin-top:6px;">* 标记的镜头为待重生成片段，拖拽可调整顺序</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 作品广场 ============ -->
+  <div class="view" id="explore">
+    <div class="section-title" style="margin-top:0;">🌐 作品广场</div>
+    <div class="explore-layout">
+      <div class="filter">
+        <div class="f-item active">🔥 推荐</div>
+        <div class="f-item">🕐 最新</div>
+        <div class="f-item">🏆 热门</div>
+        <div style="margin-top:14px;font-weight:600;color:#8B5CF6;padding:8px 12px;font-size:13px;">分类</div>
+        <div class="f-item">全部</div><div class="f-item">搞笑</div><div class="f-item">感人</div><div class="f-item">科幻</div><div class="f-item">广告</div><div class="f-item">音乐</div>
+      </div>
+      <div class="masonry">
+        <div class="post"><div class="v">🎬 猫咪咖啡厅</div><div class="i"><div class="t">猫咪咖啡厅的一天</div><div class="m">❤️ 2.3k · 💬 156 · @小美</div></div></div>
+        <div class="post"><div class="v">🎬 太空企鹅</div><div class="i"><div class="t">太空企鹅咖啡馆</div><div class="m">❤️ 1.8k · 💬 98 · @阿凯</div></div></div>
+        <div class="post"><div class="v">🎬 打工人</div><div class="i"><div class="t">打工人的一天</div><div class="m">❤️ 1.2k · 💬 204 · @老王</div></div></div>
+        <div class="post"><div class="v">🎬 星空告白</div><div class="i"><div class="t">星空下的告白</div><div class="m">❤️ 986 · 💬 77 · @小鹿</div></div></div>
+        <div class="post"><div class="v">🎬 美食探店</div><div class="i"><div class="t">深夜食堂</div><div class="m">❤️ 765 · 💬 42 · @大厨</div></div></div>
+      </div>
+    </div>
+    <div class="ai-hint" style="margin-top:16px;"><b>🤝 合拍：</b>任何作品右上角"用这个模板"即可二次创作，作品将署名"基于 @原作者的模板"。你的作品被合拍越多，曝光加权越高。</div>
+  </div>
+
+  <!-- ============ 个人中心 ============ -->
+  <div class="view" id="me">
+    <div class="me-layout">
+      <div class="me-left">
+        <div class="avatar">美</div>
+        <div style="font-size:15px;font-weight:600;">小美</div>
+        <div class="tag-line"><span class="pill mem">🛡 免费用户</span><span class="pill">Lv.3 创作者</span></div>
+        <div class="tag-line"><span class="pill" style="background:rgba(82,196,26,0.1);color:#389E0D;">🔥 连续创作 5 天</span></div>
+        <div class="me-menu" style="margin-top:16px;">
+          <div class="m active">我的作品</div>
+          <div class="m">我的模板</div>
+          <div class="m">额度与会员</div>
+          <div class="m">我的粉丝（128）</div>
+          <div class="m">设置</div>
+        </div>
+      </div>
+      <div class="me-right">
+        <div class="stat-row">
+          <div class="stat"><div class="num">12</div><div class="lb">作品</div></div>
+          <div class="stat"><div class="num">3.6w</div><div class="lb">总播放</div></div>
+          <div class="stat"><div class="num">4,520</div><div class="lb">获赞</div></div>
+          <div class="stat"><div class="num">7/10</div><div class="lb">本月额度</div></div>
+        </div>
+        <div class="grid">
+          <div class="card"><div class="thumb">🎬 猫咪日常</div><div class="body"><h4>猫咪日常 v3</h4><div class="meta">✅ 已完成 · 2.1w 播放</div></div></div>
+          <div class="card"><div class="thumb">🎬 太空企鹅</div><div class="body"><h4>太空企鹅咖啡馆</h4><div class="meta">✅ 已完成 · 1.8w 播放</div></div></div>
+          <div class="card"><div class="thumb">🎬 生成中</div><div class="body"><h4>生日惊喜</h4><div class="meta">⏳ 生成中 68%</div></div></div>
+          <div class="card"><div class="thumb">🎬 草稿</div><div class="body"><h4>新年祝福</h4><div class="meta">📝 草稿 · 继续创作</div></div></div>
+        </div>
+        <div class="ai-hint" style="margin-top:16px;"><b>💳 额度提示：</b>本月剩余 7 次生成 · 生成失败/取消不扣额度 · 升级会员解锁无限生成 + 无水印导出 → <a style="color:#8B5CF6;font-weight:600;cursor:pointer;" onclick="alert('原型演示：会员购买页（¥29/月 · ¥228/年）')">立即升级 ¥29/月</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-note">绘梦工坊 · 产品可交互原型（线框版） · 基于 PRD v2.0 · 点击顶部导航/卡片体验核心流程</div>
+</div>
+
+<div class="mockup-label">📱 可交互原型 v1 · 双击 index.html 打开</div>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    var map = { home:0, templates:1, explore:2, me:3 };
+    var links = document.querySelectorAll('.nav a');
+    links.forEach(function(l){ l.classList.remove('active'); });
+    if (map[id] !== undefined) links[map[id]].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function wizardStep(n) {
+    document.getElementById('ws1').style.display = n===1 ? 'block' : 'none';
+    document.getElementById('ws2').style.display = n===2 ? 'block' : 'none';
+    [1,2,3].forEach(function(i){
+      var sp = document.getElementById('sp'+i);
+      sp.classList.remove('active','done');
+      if (i < n) sp.classList.add('done');
+      if (i === n) sp.classList.add('active');
+      if (i < 3) document.getElementById('sl'+i).classList.toggle('done', i < n);
+    });
+    show('wizard');
+  }
+  function selStyle(el) {
+    document.querySelectorAll('.style-item').forEach(function(s){ s.classList.remove('selected'); });
+    el.classList.add('selected');
+  }
+  var genTimer = null;
+  function startGenerate() {
+    show('task');
+    var agents = document.querySelectorAll('#pipeline .agent');
+    var i = 0;
+    if (genTimer) clearInterval(genTimer);
+    agents.forEach(function(a){ a.className = 'agent wait'; a.querySelector('.st').textContent = '待执行'; });
+    document.getElementById('pgBar').style.width = '0%';
+    document.getElementById('pgTime').textContent = '约 2 分钟';
+    genTimer = setInterval(function(){
+      if (i < 7) {
+        if (i > 0) { agents[i-1].className = 'agent done'; agents[i-1].querySelector('.st').textContent = '完成 ✓'; }
+        agents[i].className = 'agent run'; agents[i].querySelector('.st').textContent = '生成中…';
+        document.getElementById('pgBar').style.width = Math.round(((i + 0.5) / 7) * 100) + '%';
+        i++;
+      } else {
+        clearInterval(genTimer);
+        agents[6].className = 'agent done'; agents[6].querySelector('.st').textContent = '完成 ✓';
+        document.getElementById('pgBar').style.width = '100%';
+        document.getElementById('pgTime').textContent = '已完成';
+        setTimeout(function(){ show('film'); }, 800);
+      }
+    }, 700);
+  }
+  function cancelTask() {
+    if (genTimer) clearInterval(genTimer);
+    alert('原型演示：任务已取消，生成额度已返还');
+    show('home');
+  }
+</script>
+</body>
+</html>

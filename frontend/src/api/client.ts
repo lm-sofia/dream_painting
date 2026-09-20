@@ -10,7 +10,8 @@ import type { ApiEnvelope } from '../types';
  * - 响应拦截器：统一解包 {code, message, data} 信封
  */
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE ?? 'http://localhost:8080/api/v1',
+  // 相对路径：开发走 Vite proxy（vite.config.ts），生产走 Nginx 反代——同源请求，无 CORS
+  baseURL: '/api/v1',
   timeout: 10000,
 });
 

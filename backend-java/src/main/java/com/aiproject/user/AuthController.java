@@ -33,7 +33,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
+        // username 字段语义扩展为 identifier：支持用户名或手机号登录
+        User user = userRepository.findByUsernameOrPhone(request.getUsername())
                 .orElseThrow(() -> new BizException(ErrorCode.UNAUTHORIZED, "用户名或密码错误"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new BizException(ErrorCode.UNAUTHORIZED, "用户名或密码错误");

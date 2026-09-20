@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -49,8 +50,11 @@ public class SecurityConfig {
                                     "{\"code\":40301,\"message\":\"无权限执行此操作\",\"data\":null}");
                         }))
                 .authorizeHttpRequests(auth -> auth
+                        // SSE/异步响应完成时触发 async dispatch，认证已在首次请求完成，必须放行
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/styles/**").permitAll()
                         .requestMatchers("/api/v1/articles/**").authenticated()
                         .requestMatchers("/api/v1/auth/me").authenticated()
                         .anyRequest().authenticated())

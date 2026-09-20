@@ -14,6 +14,8 @@ public enum ErrorCode {
     FORBIDDEN(40301, HttpStatus.FORBIDDEN, "无权限执行此操作"),
     NOT_FOUND(40401, HttpStatus.NOT_FOUND, "资源不存在"),
     CONFLICT(40901, HttpStatus.CONFLICT, "资源冲突"),
+    /** 创作额度不足（第 4 课：扣费场景） */
+    INSUFFICIENT_QUOTA(40201, HttpStatus.PAYMENT_REQUIRED, "创作额度不足"),
     INTERNAL_ERROR(50000, HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部错误");
 
     private final int code;

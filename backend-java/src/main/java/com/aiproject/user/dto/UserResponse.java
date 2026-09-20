@@ -12,9 +12,13 @@ public class UserResponse {
     private String username;
     private String email;
     private String role;
+    private String phone;
+    private Integer level;
+    private Integer continuousDays;
     private java.time.Instant createdAt;
 
     public static UserResponse from(User user) {
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getCreatedAt());
+        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole(),
+                user.getPhone(), user.getLevel(), user.getContinuousDays(), user.getCreatedAt());
     }
 }
