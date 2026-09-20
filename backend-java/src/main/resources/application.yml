@@ -33,6 +33,16 @@ app:
     secret: ${JWT_SECRET:dev-only-change-me-in-production-0123456789abcdef}
     expiration-ms: 86400000
 
+ai:
+  video:
+    # 生成引擎：mock（默认，无 Key 跑通全链路）| seedance（火山方舟，需配 Key）
+    provider: ${AI_VIDEO_PROVIDER:mock}
+    seedance:
+      # 密钥安全：只从环境变量注入（.env → 启动脚本），绝不写死在代码/配置里
+      base-url: ${ARK_BASE_URL:https://ark.cn-beijing.volces.com/api/v3}
+      api-key: ${ARK_API_KEY:}
+      model: ${ARK_MODEL:doubao-seedance-1-0-pro-250528}
+
 logging:
   level:
     com.aiproject: INFO

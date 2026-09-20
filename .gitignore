@@ -60,3 +60,4 @@ docker/data/
 .testdata/
 e2e-fail.png
 docker/init-merged.sql
+backend-java/.env

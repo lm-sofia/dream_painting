@@ -136,3 +136,28 @@ python tests/contract_test.py --all                                     # 双后
 - **H2 vs PG 差异**：test profile 用 H2 由 JPA `ddl-auto=create-drop` 建表——**没有 DEFAULT**，所以种子 INSERT 必须显式列出所有 NOT NULL 列（第 1 课 CONTINUOUS_DAYS、第 2 课 ACTIVE 都踩过）。PG 的 01_create_schema.sql 有 DEFAULT，02_seed_data.sql 无需列。
 - **旧进程占用 8080**：启动前先 `Get-NetTCPConnection -LocalPort 8080` 检查，有残留 java 进程会跑旧代码（表现为新接口 401）。
 - **端口**：Java 8080 / .NET 5080 / 前端 5173 / PG 5432 / Redis 6379。
+
+## 第 7 课：真实生成引擎接入 + 密钥安全（2026-09-20）
+
+### 做了什么
+- **generator 包（可插拔引擎）**：`VideoGenerator` 接口 + `GenerateRequest`/`GeneratorStatus` + 两个实现：
+  - `MockVideoGenerator`（默认 provider=mock）：无 Key 也能跑通全链路，6 秒返回占位视频
+  - `SeedanceVideoGenerator`（provider=seedance）：火山方舟 API 适配器（submit/query 异步任务模型），Key 只从环境变量注入
+- **RealTaskWorker（生产 worker）**：消费 Redis 队列 → 组装草稿描述+风格模板 → 提交引擎 → 轮询 → 7 智能体推进+SSE → SUCCESS 落作品；基于 DB 状态分支推进，worker 重启可续；10 分钟超时保护
+- **密钥安全三原则**：密钥永不进 Git（.gitignore 排除 backend-java/.env）；仓库只放 `.env.example` 占位模板；前端零密钥（Key 只在后端环境变量）
+- **配套**：GenerationTask +provider_task_id（幂等 ALTER 迁移）；application.yml +ai.video 配置（可插拔 provider）；start-prod.ps1 启动脚本（读 .env → 注入环境变量）
+
+### 实战踩坑（3 个，全本地复现验证）
+1. **游离实体 set 不落库**：worker 直接 task.setProviderTaskId() 只在内存 → 需 TaskService 事务内重新加载保存（saveProviderTaskId）
+2. **Mock 查询必须幂等**：第一次查 SUCCEEDED 就 remove 记录 → 后续 RENDERING/COMPILING 轮询"任务不存在" → 改为不删+超时清理
+3. **缓存版本不兼容**：Docker 旧容器（旧序列化器）写入 Redis 的 styles 缓存，新代码（带类型信息）读炸 500 → 清 Redis 缓存（生产发布时清缓存或缓存 key 带版本号）
+
+### 验证
+- 契约测试 44/44（真实 PG+Redis，mock 引擎）
+- 端到端：登录→建草稿→提交→7 智能体推进→SUCCESS→作品库落库 ✅
+
+### 用户接真实模型步骤（别人用本项目）
+1. 复制 backend-java/.env.example 为 backend-java/.env
+2. 填 ARK_API_KEY（火山方舟控制台购买）
+3. AI_VIDEO_PROVIDER=seedance
+4. 运行 ./start-prod.ps1 启动

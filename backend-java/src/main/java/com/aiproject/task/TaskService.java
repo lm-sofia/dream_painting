@@ -93,6 +93,19 @@ public class TaskService {
     }
 
     /**
+     * 仅供内部 worker：回填生成引擎侧任务 ID（第 7 课）。
+     * 为什么必须走这里：worker 持有的 task 是游离对象，直接 set 不会落库；
+     * 只有在本事务内重新加载再保存，修改才持久化。
+     */
+    @Transactional
+    public void saveProviderTaskId(Long taskId, String providerTaskId) {
+        GenerationTask task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new BizException(ErrorCode.NOT_FOUND, "任务不存在"));
+        task.setProviderTaskId(providerTaskId);
+        taskRepository.save(task);
+    }
+
+    /**
      * 状态推进（worker 内部调用，不暴露给 HTTP）。
      * 读 → transitionTo 校验合法性 → 更新 → 保存 → SSE 推送。
      */

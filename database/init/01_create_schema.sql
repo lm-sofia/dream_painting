@@ -250,3 +250,6 @@ DROP TRIGGER IF EXISTS trg_works_updated_at ON works;
 CREATE TRIGGER trg_works_updated_at
     BEFORE UPDATE ON works
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ===== 第 7 课迁移：真实生成引擎 =====
+ALTER TABLE generation_tasks ADD COLUMN IF NOT EXISTS provider_task_id VARCHAR(100);  -- 生成引擎侧任务 ID（重启可续查）

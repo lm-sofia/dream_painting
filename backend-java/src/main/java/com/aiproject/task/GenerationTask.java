@@ -58,6 +58,10 @@ public class GenerationTask {
     @Column(name = "video_url", length = 500)
     private String videoUrl;
 
+    /** 生成引擎侧任务 ID（第 7 课：提交真实模型后回填，worker 轮询用它；重启后可续查） */
+    @Column(name = "provider_task_id", length = 100)
+    private String providerTaskId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
