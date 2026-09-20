@@ -66,13 +66,7 @@ export interface DraftPayload {
 }
 
 /** 生成任务（第 4 课：6 状态状态机） */
-export type TaskStatus =
-  | 'PENDING'
-  | 'AGENTS'
-  | 'RENDERING'
-  | 'COMPILING'
-  | 'SUCCESS'
-  | 'FAILED';
+export type TaskStatus = 'PENDING' | 'AGENTS' | 'RENDERING' | 'COMPILING' | 'SUCCESS' | 'FAILED';
 
 export interface GenerationTask {
   id: number;
@@ -92,13 +86,7 @@ export interface GenerationTask {
 
 /** 7 智能体流水线（第 5 课） */
 export type AgentStage =
-  | 'SCREENWRITER'
-  | 'CHARACTER'
-  | 'SCENE'
-  | 'ANIMATION'
-  | 'EDITING'
-  | 'SOUND'
-  | 'DIRECTOR';
+  'SCREENWRITER' | 'CHARACTER' | 'SCENE' | 'ANIMATION' | 'EDITING' | 'SOUND' | 'DIRECTOR';
 
 /** 智能体展示元信息（顺序即流水线顺序） */
 export const AGENT_STAGE_META: { key: AgentStage; label: string; icon: string }[] = [

@@ -73,8 +73,7 @@ export const taskApi = {
   submit: (draftId: number) =>
     apiClient.post<{ code: number; data: GenerationTask }>('/tasks', { draftId }),
   list: () => apiClient.get<{ code: number; data: GenerationTask[] }>('/tasks'),
-  detail: (id: number) =>
-    apiClient.get<{ code: number; data: GenerationTask }>(`/tasks/${id}`),
+  detail: (id: number) => apiClient.get<{ code: number; data: GenerationTask }>(`/tasks/${id}`),
 };
 
 /** 作品库（第 6 课） */

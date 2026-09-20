@@ -71,7 +71,14 @@ export default function WizardPage() {
   const saveDraft = async (): Promise<number | null> => {
     // 按字段名显式取值：antd 5 的 getFieldsValue() 无参只返回“当前挂载”字段，
     // Step3 时 Step0 的 title 字段已卸载，必须点名取（值仍保留在 store）
-    const values = form.getFieldsValue(['title', 'idea', 'styleId', 'duration', 'ratio', 'voiceover']);
+    const values = form.getFieldsValue([
+      'title',
+      'idea',
+      'styleId',
+      'duration',
+      'ratio',
+      'voiceover',
+    ]);
     if (!values.title?.trim()) return null;
     const payload: DraftPayload = {
       title: values.title.trim(),
@@ -153,7 +160,11 @@ export default function WizardPage() {
         )}
 
         {step === 1 && (
-          <Form.Item name="styleId" label="选择风格" rules={[{ required: true, message: '请选择风格' }]}>
+          <Form.Item
+            name="styleId"
+            label="选择风格"
+            rules={[{ required: true, message: '请选择风格' }]}
+          >
             <div
               style={{
                 display: 'grid',
@@ -187,7 +198,8 @@ export default function WizardPage() {
             <Form.Item name="ratio" label="画面比例">
               <Segmented
                 options={RATIO_OPTIONS.map((r) => ({
-                  label: r === '9:16' ? '竖屏 9:16（抖音）' : r === '16:9' ? '横屏 16:9' : '方形 1:1',
+                  label:
+                    r === '9:16' ? '竖屏 9:16（抖音）' : r === '16:9' ? '横屏 16:9' : '方形 1:1',
                   value: r,
                 }))}
                 block

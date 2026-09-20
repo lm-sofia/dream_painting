@@ -66,21 +66,17 @@ export default function GeneratingPage() {
 
     function startSse(taskId: number) {
       if (!token) return;
-      cancelSseRef.current = subscribeSSE(
-        `/api/v1/tasks/${taskId}/stream`,
-        token,
-        {
-          onData: (t) => {
-            setTask(t);
-            if (isDone(t)) cancelSseRef.current?.();
-          },
-          onDone: () => setUsePolling(false),
-          onError: () => {
-            // SSE 不可用 → 降级轮询兜底
-            setUsePolling(true);
-          },
+      cancelSseRef.current = subscribeSSE(`/api/v1/tasks/${taskId}/stream`, token, {
+        onData: (t) => {
+          setTask(t);
+          if (isDone(t)) cancelSseRef.current?.();
         },
-      );
+        onDone: () => setUsePolling(false),
+        onError: () => {
+          // SSE 不可用 → 降级轮询兜底
+          setUsePolling(true);
+        },
+      });
     }
 
     return () => cancelSseRef.current?.();

@@ -7,20 +7,21 @@
 
 ## 📌 当前进度
 
-| 里程碑 | 状态 | 说明 |
-|---|---|---|
-| 第 1 课 认证模块产品化 | ✅ 完成 | 手机号/用户名双登录 + 游戏化字段 |
-| 第 2 课 风格库模块 | ✅ 完成 | 类型/API/组件/页面/路由懒加载 + 660KB 警告解决 |
-| 第 3 课 三步向导 | ✅ 完成 | WizardPage 三步 + 防抖自动保存 + 草稿续创 |
+| 里程碑                 | 状态    | 说明                                                 |
+| ---------------------- | ------- | ---------------------------------------------------- |
+| 第 1 课 认证模块产品化 | ✅ 完成 | 手机号/用户名双登录 + 游戏化字段                     |
+| 第 2 课 风格库模块     | ✅ 完成 | 类型/API/组件/页面/路由懒加载 + 660KB 警告解决       |
+| 第 3 课 三步向导       | ✅ 完成 | WizardPage 三步 + 防抖自动保存 + 草稿续创            |
 | 第 4 课 生成任务状态机 | ✅ 完成 | GeneratingPage 提交 + 2s 轮询 + 进度条 + 结果/失败态 |
-| 第 5 课 7 智能体 + SSE | ✅ 完成 | SSE 实时推送（降级轮询）+ AgentTimeline 组件 |
-| 第 6 课 作品页 + 测试 | ✅ 完成 | 作品库 + 重新生成 + Playwright 全链路 3/3 |
+| 第 5 课 7 智能体 + SSE | ✅ 完成 | SSE 实时推送（降级轮询）+ AgentTimeline 组件         |
+| 第 6 课 作品页 + 测试  | ✅ 完成 | 作品库 + 重新生成 + Playwright 全链路 3/3            |
 
 ---
 
 ## ✅ 已完成内容
 
 ### 第 1 课：认证模块产品化（已完成）
+
 - `src/types/index.ts`：User 类型 + `phone?/level/continuousDays`
 - `src/api/index.ts`：`authApi.register` 支持 `phone?`；login 语义扩展（用户名或手机号）
 - `src/stores/auth.ts`：+`fetchMe()` 异步 action（刷新后同步服务器端等级/天数）
@@ -29,6 +30,7 @@
 - `src/pages/RegisterPage.tsx`：复用 AuthShell，+手机号选填输入（正则 `/^$|^1[3-9]\d{9}$/`）
 
 ### 第 2 课：风格库（已完成）
+
 - `src/types/index.ts`：+`Style`/`StylePayload` 接口
 - `src/api/index.ts`：+`styleApi`（list/detail/create/update/remove）
 - `src/components/StyleCard.tsx`（新）：风格卡片（封面占位/选中态/键盘可访问）
@@ -38,6 +40,7 @@
 - `vite.config.ts`：`chunkSizeWarningLimit` 600→700（antd 共享依赖整包体积 gzip 215KB 属正常）
 
 ### 第 3 课：三步向导（已完成）
+
 - `src/types/index.ts`：+`Draft`/`DraftPayload` 接口
 - `src/api/index.ts`：+`draftApi`（list/detail/create/update/remove）
 - `src/pages/WizardPage.tsx`（新）：三步向导（Steps：创意→风格→配置）
@@ -50,6 +53,7 @@
 - `src/components/AppLayout.tsx`：+「创作」导航入口
 
 ### 第 4 课：生成任务页（已完成）
+
 - `src/types/index.ts`：+`GenerationTask`（6 状态）+ `TASK_STATUS_META`（状态→文案/颜色映射，收敛一处）
 - `src/api/index.ts`：+`taskApi`（submit/list/detail）
 - `src/pages/GeneratingPage.tsx`（新）：`/generating`
@@ -61,12 +65,14 @@
 - `vite.config.ts`：chunkSizeWarningLimit 700→800（antd 748KB/gzip 239KB 正常）
 
 ### 第 5 课：SSE + 7 智能体时间线（已完成）
+
 - `src/types/index.ts`：+`AgentStage`（7 智能体）+ `AGENT_STAGE_META`（顺序即流水线）
 - `src/utils/sse.ts`（新）：**subscribeSSE 工具**（fetch + ReadableStream 手解 SSE 线协议；为什么不用 EventSource——无法带 Authorization header；onData/onDone/onError 三回调 + 取消函数）
 - `src/components/AgentTimeline.tsx`（新）：7 智能体垂直 Steps（finish/process/wait 三态 + 当前智能体内部进度 %）
 - `src/pages/GeneratingPage.tsx`：**SSE 主通道 + 失败自动降级 2s 轮询**（健壮性）；AgentTimeline 展示；终态停止订阅 + 卸载清理
 
 ### 第 6 课：作品页 + 测试（已完成，M1 收官）
+
 - `src/types/index.ts`：+`Work` 接口（id/draftId/taskId/title/videoUrl/version/createdAt）
 - `src/api/index.ts`：+`workApi`（list/detail/regenerate）
 - `src/pages/WorksPage.tsx`（新）：`/works` 我的作品库
@@ -85,6 +91,7 @@
 ## 🔨 待办（下一步）
 
 ### M2 展望（等用户指示开课）
+
 - [ ] 社区广场（作品公开 + 点赞/收藏 + 瀑布流）
 - [ ] 模板/挑战赛/会员/企业 API（PRD v2.0 范围）
 - [ ] .NET 后端（backend-dotnet）同步第 1-6 课全部改动
@@ -103,6 +110,7 @@ npx playwright test                                 # E2E 测试
 ```
 
 ## ⚠️ 踩坑记录
+
 - **Node 版本**：必须 Node ≥ 20.19（用 C:\Program Files\nodejs，v22.14.0）。`D:\360Install\nodejs` 的 v20.12.2 会导致 Rolldown 报 `ERR_INVALID_ARG_VALUE`。
 - **构建警告**：antd chunk 660KB > 600KB 阈值 → 第 2 课用路由懒加载解决。
 - **antd Form.getFieldsValue() 无参坑（第 6 课实战）**：无参只返回**当前已挂载**字段的值！三步向导切到 Step3 后，Step0 的 title 字段已卸载 → 取值丢 title → 保存静默失败。**修法：`form.getFieldsValue(['title','idea',...])` 按字段名显式取**（值仍保留在 store）。

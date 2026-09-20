@@ -64,7 +64,11 @@ export default function RegisterPage() {
           name="phone"
           rules={[{ pattern: /^$|^1[3-9]\d{9}$/, message: '手机号格式不合法' }]}
         >
-          <Input prefix={<MobileOutlined />} placeholder="手机号（可选，登录可用手机号）" maxLength={11} />
+          <Input
+            prefix={<MobileOutlined />}
+            placeholder="手机号（可选，登录可用手机号）"
+            maxLength={11}
+          />
         </Form.Item>
         <Form.Item
           name="password"

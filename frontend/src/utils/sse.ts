@@ -61,9 +61,7 @@ export function subscribeSSE(
         buffer = frames.pop() ?? '';
 
         for (const frame of frames) {
-          const dataLine = frame
-            .split('\n')
-            .find((line) => line.startsWith('data:'));
+          const dataLine = frame.split('\n').find((line) => line.startsWith('data:'));
           if (!dataLine) continue;
           try {
             onData(JSON.parse(dataLine.slice(5).trim()) as GenerationTask);

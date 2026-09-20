@@ -15,9 +15,7 @@ export default function AgentTimeline({ task }: Props) {
   const { agentStage, agentProgress, status } = task;
 
   // 当前智能体的流水线序号（-1 = 还没开始智能体阶段）
-  const currentIndex = agentStage
-    ? AGENT_STAGE_META.findIndex((s) => s.key === agentStage)
-    : -1;
+  const currentIndex = agentStage ? AGENT_STAGE_META.findIndex((s) => s.key === agentStage) : -1;
 
   const isAgentsPhase = status === 'AGENTS';
 
@@ -32,9 +30,7 @@ export default function AgentTimeline({ task }: Props) {
         <span style={{ fontSize: 13 }}>
           {stage.icon} {stage.label}
           {active && (
-            <span style={{ color: '#8BC8EA', fontSize: 11, marginLeft: 6 }}>
-              {agentProgress}%
-            </span>
+            <span style={{ color: '#8BC8EA', fontSize: 11, marginLeft: 6 }}>{agentProgress}%</span>
           )}
           {finished && <span style={{ color: '#52C41A', fontSize: 11, marginLeft: 6 }}>✓</span>}
         </span>
