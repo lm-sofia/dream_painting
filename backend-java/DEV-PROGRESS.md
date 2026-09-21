@@ -161,3 +161,8 @@ python tests/contract_test.py --all                                     # 双后
 2. 填 ARK_API_KEY（火山方舟控制台购买）
 3. AI_VIDEO_PROVIDER=seedance
 4. 运行 ./start-prod.ps1 启动
+### 第 7 课补记（2026-09-21 真实接入排障）
+1. **API 路径实战修正**：方舟视频生成正确路径是 `/contents/generations/tasks`（复数 contents+generations）；写成单数 `/content/generation/tasks` 返回 404
+2. **PowerShell 传 JSON 三连坑**：内联引号被吞 → 用 `-d @file`；但 `Set-Content -Encoding UTF8` 写 BOM → 方舟"could not parse JSON" → 必须无 BOM 写入（`[System.IO.File]::WriteAllText` + UTF8Encoding($false)）
+3. **ModelNotOpen 未开通模型**：账号需在方舟控制台"开通管理"申请 doubao-seedance-1-0-pro 后才能调用；已把方舟 error.message 透传成任务失败原因（前端可见）
+4. **用户实操注意**：Key 必须放 backend-java/.env（gitignore），曾误填进 .env.example（公开模板）→ 已还原+提示轮换 Key

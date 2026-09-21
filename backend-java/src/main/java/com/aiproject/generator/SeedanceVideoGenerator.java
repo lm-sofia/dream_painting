@@ -80,7 +80,7 @@ public class SeedanceVideoGenerator implements VideoGenerator {
                     "seed", ThreadLocalRandom.current().nextInt(1_000_000_000));
 
             JsonNode resp = client.post()
-                    .uri("/content/generation/tasks")
+                    .uri("/contents/generations/tasks") // 实测正确路径（单数 content 会 404）
                     .header("Authorization", "Bearer " + apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(objectMapper.writeValueAsBytes(body))
@@ -92,15 +92,28 @@ public class SeedanceVideoGenerator implements VideoGenerator {
             return taskId;
         } catch (Exception e) {
             log.error("[AI 视频] 提交失败 draft={}", request.draftId(), e);
-            throw new IllegalStateException("生成引擎提交失败: " + e.getMessage(), e);
+            // 把方舟的错误体（如 ModelNotOpen 未开通模型）透传成可读信息，让用户知道去控制台开通
+            throw new IllegalStateException("生成引擎提交失败: " + extractArkError(e), e);
         }
+    }
+
+    /** 从方舟 4xx 响应体提取 error.message（如 "您的账号未开通模型 xxx，请到方舟控制台开通"） */
+    private String extractArkError(Exception e) {
+        if (e instanceof org.springframework.web.client.HttpClientErrorException he) {
+            try {
+                String msg = objectMapper.readTree(he.getResponseBodyAsString())
+                        .path("error").path("message").asText();
+                return (msg.isBlank() ? he.getStatusCode().toString() : msg);
+            } catch (Exception ignore) { /* 响应体非 JSON 时回退 */ }
+        }
+        return e.getMessage();
     }
 
     @Override
     public GeneratorStatus query(String providerTaskId) {
         try {
             JsonNode resp = client.get()
-                    .uri("/content/generation/tasks/{id}", providerTaskId)
+                    .uri("/contents/generations/tasks/{id}", providerTaskId)
                     .header("Authorization", "Bearer " + apiKey)
                     .retrieve()
                     .body(JsonNode.class);
