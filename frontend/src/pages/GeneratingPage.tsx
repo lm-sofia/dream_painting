@@ -29,13 +29,15 @@ export default function GeneratingPage() {
   const [usePolling, setUsePolling] = useState(false); // SSE 失败后切轮询
   const cancelSseRef = useRef<(() => void) | null>(null);
   const pollRef = useRef<number | undefined>(undefined);
+  const submittedRef = useRef(false); // 防 StrictMode 双提交：React 开发模式 effect 会跑两次
 
   const isDone = (t: GenerationTask | null) =>
     !!t && (t.status === 'SUCCESS' || t.status === 'FAILED');
 
   /** 提交任务（首次进入且有 draftId） */
   useEffect(() => {
-    if (draftId && !taskIdParam) {
+    if (draftId && !taskIdParam && !submittedRef.current) {
+      submittedRef.current = true; // 标记：StrictMode 第二次跑时直接跳过
       taskApi
         .submit(Number(draftId))
         .then(({ data }) => setTask(data.data))

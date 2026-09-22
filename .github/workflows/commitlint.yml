@@ -1,0 +1,17 @@
+﻿name: Commit Message Check
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 需要完整历史检查所有 commit
+      - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.js

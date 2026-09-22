@@ -11,6 +11,7 @@ public record GenerateRequest(
         String prompt,       // 组装后的最终提示词（风格模板填充用户创意）
         String styleName,    // 风格名（调试/打标用）
         int durationSeconds, // 目标时长（模型支持范围内）
-        String ratio         // 画面比例 9:16 / 16:9 / 1:1
+        String ratio,        // 画面比例 9:16 / 16:9 / 1:1
+        boolean voiceover    // 是否生成有声视频（1.5-pro 的 generate_audio 参数；无声便宜一半）
 ) {
 }

@@ -2,8 +2,6 @@ package com.aiproject.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -35,14 +33,12 @@ public class CacheConfig {
     @Profile("!test")
     public CacheManager redisCacheManager(RedisConnectionFactory factory) {
         // JSON 序列化：value 存为可读 JSON（默认 JDK 序列化二进制，排障困难且不跨语言）
-        // 两个必须项（第 6 课 CI 实战坑）：
-        // 1) JavaTimeModule：DTO 含 java.time.Instant，默认 ObjectMapper 不支持 → 缓存写入 500
-        // 2) activateDefaultTyping：缓存 value 是 List<StyleResponse> 泛型，无类型信息反序列化失败
+        // 必须项：JavaTimeModule（DTO 含 java.time.Instant，默认不支持）
+        // 类型信息：GenericJackson2JsonRedisSerializer 内部默认会加 @class 字段（PROPERTY 模式），
+        //           不要再手动 activateDefaultTyping——重复配置会导致写读模式不一致（PROPERTY vs ARRAY）
         ObjectMapper om = new ObjectMapper();
         om.registerModule(new JavaTimeModule());
         om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        om.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(STYLE_TTL)

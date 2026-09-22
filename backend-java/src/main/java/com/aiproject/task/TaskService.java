@@ -53,7 +53,13 @@ public class TaskService {
         task.setStatus(TaskStatus.PENDING);
         task.setProgress(0);
         task.setStageMessage("排队中…");
-        taskRepository.save(task);
+        try {
+            taskRepository.save(task);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            // 并发兜底：两个请求同时通过了②的应用层检查，数据库唯一索引 uq_tasks_draft_running 拦第二个
+            // 转成友好的 409，而不是 500
+            throw new BizException(ErrorCode.CONFLICT, "该草稿正在生成中，请勿重复提交");
+        }
 
         // ④ 扣费（同事务：余额不足抛异常 → 任务创建一并回滚，不会出现"没扣费却建了任务"）
         creditService.deduct(userId, task.getId());

@@ -27,6 +27,11 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      // 实用规则（全栈经验踩坑最多的）
+      'no-debugger': 'error', // 禁止 debugger 语句提交到仓库
+      'no-console': ['warn', { allow: ['warn', 'error'] }], // 禁止 console.log，保留 warn/error
+      'prefer-const': 'warn', // 从不重新赋值的变量必须用 const（而不是 let）
+      '@typescript-eslint/no-empty-function': ['warn', { allow: ['arrowFunctions'] }], // 禁止空函数体
       // 与 Prettier 冲突的规则全部关闭（eslint-config-prettier）
       ...prettier.rules,
     },

@@ -17,9 +17,9 @@ interface WizardState {
 }
 
 const DURATION_OPTIONS = [
-  { label: '15 秒', value: 15 },
-  { label: '30 秒（推荐）', value: 30 },
-  { label: '60 秒', value: 60 },
+  { label: '5 秒（推荐）', value: 5 },
+  { label: '8 秒', value: 8 },
+  { label: '12 秒（最长）', value: 12 },
 ];
 
 const RATIO_OPTIONS = ['9:16', '16:9', '1:1'];
@@ -135,6 +135,7 @@ export default function WizardPage() {
       <Steps
         current={step}
         items={[{ title: '写下创意' }, { title: '选择风格' }, { title: '配置参数' }]}
+        className="custom-steps"
         style={{ marginBottom: 28 }}
       />
 
@@ -208,6 +209,9 @@ export default function WizardPage() {
             <Form.Item name="voiceover" label="AI 配音与音效" valuePropName="checked">
               <Switch checkedChildren="开启" unCheckedChildren="关闭" />
             </Form.Item>
+            <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: -12 }}>
+              ⚠️ 当前使用 1.0-pro-fast 无声模型，配音开关暂不生效（仅 1.5-pro 及以上模型支持有声）
+            </Typography.Paragraph>
             <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
               预计消耗：1 次创作额度（免费用户每月 10 次）
             </Typography.Paragraph>

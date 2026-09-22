@@ -53,6 +53,8 @@ public class SecurityConfig {
                         // SSE/异步响应完成时触发 async dispatch，认证已在首次请求完成，必须放行
                         .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/health").permitAll()
+                        // 监控端点放行（生产环境建议限制为内网/IP 白名单，见监控实施文档）
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/styles/**").permitAll()
                         .requestMatchers("/api/v1/articles/**").authenticated()

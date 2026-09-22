@@ -1,0 +1,28 @@
+{
+  "name": "ai-project",
+  "version": "1.0.0",
+  "description": "> Java + .NET 双后端 · React 前端 · PostgreSQL + Redis · Docker · CI/CD",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lm-sofia/dream_painting.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lm-sofia/dream_painting/issues"
+  },
+  "homepage": "https://github.com/lm-sofia/dream_painting#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3"
+  }
+}

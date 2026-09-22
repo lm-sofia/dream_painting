@@ -79,7 +79,8 @@ public class RealTaskWorker {
                 task.getUserId(), task.getDraftId(), prompt,
                 style != null ? style.getName() : "默认",
                 draft.getDuration() == null ? 5 : draft.getDuration(),
-                draft.getRatio() == null ? "9:16" : draft.getRatio());
+                draft.getRatio() == null ? "9:16" : draft.getRatio(),
+                Boolean.TRUE.equals(draft.getVoiceover()));
 
         String providerTaskId = videoGenerator.submit(request);
         // 游离实体 set 不落库 —— 必须走 TaskService 事务内持久化（第 7 课实战坑）

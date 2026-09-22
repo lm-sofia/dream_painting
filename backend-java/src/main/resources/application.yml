@@ -47,3 +47,18 @@ logging:
   level:
     com.aiproject: INFO
     org.hibernate.SQL: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 只暴露需要的端点，避免 info/env/beans 等敏感信息外泄
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      # health 详情显示各组件的 UP/DOWN（db/redis），便于排查
+      show-details: always
+  metrics:
+    tags:
+      # 所有指标自动带上 application 标签，多服务混在一个 Prometheus 时靠它区分
+      application: ${spring.application.name}

@@ -72,11 +72,14 @@ public class SeedanceVideoGenerator implements VideoGenerator {
             };
             String prompt = "【" + ratioHint + "】【风格:" + request.styleName() + "】" + request.prompt();
 
+            // 只有 1.5-pro 及以上模型才支持有声视频；1.0-pro/1.0-pro-fast 传了也无效，强制关
+            boolean supportsAudio = model.contains("1-5") || model.contains("2-");
             Map<String, Object> body = Map.of(
                     "model", model,
                     "content", java.util.List.of(Map.of("type", "text", "text", prompt)),
                     "resolution", "1080p",
-                    "duration", Math.max(5, request.durationSeconds()), // 模型下限 5 秒
+                    "duration", Math.min(12, Math.max(4, request.durationSeconds())), // 1.5-pro 支持 4~12 秒
+                    "generate_audio", supportsAudio && request.voiceover(), // 仅 1.5+ 模型才传有声
                     "seed", ThreadLocalRandom.current().nextInt(1_000_000_000));
 
             JsonNode resp = client.post()
